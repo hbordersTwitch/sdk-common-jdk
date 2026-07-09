@@ -2,6 +2,29 @@ package cloud.eppo.ufc.dto.adapters;
 
 import static cloud.eppo.Utils.base64Decode;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
+
 import cloud.eppo.api.EppoValue;
 import cloud.eppo.api.dto.Allocation;
 import cloud.eppo.api.dto.BanditFlagVariation;
@@ -10,23 +33,12 @@ import cloud.eppo.api.dto.FlagConfig;
 import cloud.eppo.api.dto.FlagConfigResponse;
 import cloud.eppo.api.dto.OperatorType;
 import cloud.eppo.api.dto.Shard;
+import cloud.eppo.api.dto.ShardRange;
 import cloud.eppo.api.dto.Split;
 import cloud.eppo.api.dto.TargetingCondition;
 import cloud.eppo.api.dto.TargetingRule;
 import cloud.eppo.api.dto.Variation;
 import cloud.eppo.api.dto.VariationType;
-import cloud.eppo.model.ShardRange;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Hand-rolled deserializer so that we don't rely on annotations and method names, which can be
@@ -219,7 +231,7 @@ public class FlagConfigResponseDeserializer extends StdDeserializer<FlagConfigRe
       for (JsonNode rangeNode : shardNode.get("ranges")) {
         int start = rangeNode.get("start").asInt();
         int end = rangeNode.get("end").asInt();
-        ranges.add(new ShardRange(start, end));
+        ranges.add(new ShardRange.Default(start, end));
       }
       shards.add(new Shard.Default(salt, ranges));
     }

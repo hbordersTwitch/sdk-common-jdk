@@ -1,19 +1,15 @@
 package cloud.eppo.ufc.deserializer;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import cloud.eppo.api.dto.Allocation;
-import cloud.eppo.api.dto.FlagConfig;
-import cloud.eppo.api.dto.FlagConfigResponse;
-import cloud.eppo.api.dto.OperatorType;
-import cloud.eppo.api.dto.Shard;
-import cloud.eppo.api.dto.Split;
-import cloud.eppo.api.dto.TargetingCondition;
-import cloud.eppo.api.dto.Variation;
-import cloud.eppo.api.dto.VariationType;
-import cloud.eppo.model.ShardRange;
-import cloud.eppo.ufc.dto.adapters.EppoModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.junit.jupiter.api.Test;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -23,7 +19,18 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
-import org.junit.jupiter.api.Test;
+
+import cloud.eppo.api.dto.Allocation;
+import cloud.eppo.api.dto.FlagConfig;
+import cloud.eppo.api.dto.FlagConfigResponse;
+import cloud.eppo.api.dto.OperatorType;
+import cloud.eppo.api.dto.Shard;
+import cloud.eppo.api.dto.ShardRange;
+import cloud.eppo.api.dto.Split;
+import cloud.eppo.api.dto.TargetingCondition;
+import cloud.eppo.api.dto.Variation;
+import cloud.eppo.api.dto.VariationType;
+import cloud.eppo.ufc.dto.adapters.EppoModule;
 
 public class FlagConfigResponseDeserializerTest {
   private final ObjectMapper mapper = new ObjectMapper().registerModule(EppoModule.eppoModule());

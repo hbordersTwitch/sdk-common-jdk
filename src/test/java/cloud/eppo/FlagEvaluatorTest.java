@@ -1,8 +1,25 @@
 package cloud.eppo;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static cloud.eppo.Utils.base64Encode;
 import static cloud.eppo.Utils.getMD5Hex;
-import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import cloud.eppo.api.AllocationDetails;
 import cloud.eppo.api.AllocationEvaluationCode;
@@ -14,23 +31,12 @@ import cloud.eppo.api.dto.Allocation;
 import cloud.eppo.api.dto.FlagConfig;
 import cloud.eppo.api.dto.OperatorType;
 import cloud.eppo.api.dto.Shard;
+import cloud.eppo.api.dto.ShardRange;
 import cloud.eppo.api.dto.Split;
 import cloud.eppo.api.dto.TargetingCondition;
 import cloud.eppo.api.dto.TargetingRule;
 import cloud.eppo.api.dto.Variation;
 import cloud.eppo.api.dto.VariationType;
-import cloud.eppo.model.ShardRange;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import org.junit.jupiter.api.Test;
 
 public class FlagEvaluatorTest {
 
@@ -691,7 +697,7 @@ public class FlagEvaluatorTest {
   private Set<Shard> createShards(String salt, Integer rangeStart, Integer rangeEnd) {
     Set<ShardRange> ranges = new HashSet<>();
     if (rangeStart != null) {
-      ShardRange range = new ShardRange(rangeStart, rangeEnd);
+      ShardRange.Default range = new ShardRange.Default(rangeStart, rangeEnd);
       ranges = new HashSet<>(Collections.singletonList(range));
     }
     return new HashSet<>(Collections.singletonList(new Shard.Default(salt, ranges)));

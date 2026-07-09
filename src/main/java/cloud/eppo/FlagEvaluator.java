@@ -4,6 +4,14 @@ import static cloud.eppo.Utils.base64Decode;
 import static cloud.eppo.Utils.getMD5Hex;
 import static cloud.eppo.Utils.getShard;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import cloud.eppo.api.AllocationDetails;
 import cloud.eppo.api.AllocationEvaluationCode;
 import cloud.eppo.api.Attributes;
@@ -14,17 +22,10 @@ import cloud.eppo.api.RuleCondition;
 import cloud.eppo.api.dto.Allocation;
 import cloud.eppo.api.dto.FlagConfig;
 import cloud.eppo.api.dto.Shard;
+import cloud.eppo.api.dto.ShardRange;
 import cloud.eppo.api.dto.Split;
 import cloud.eppo.api.dto.TargetingRule;
 import cloud.eppo.api.dto.Variation;
-import cloud.eppo.model.ShardRange;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class FlagEvaluator {
 
