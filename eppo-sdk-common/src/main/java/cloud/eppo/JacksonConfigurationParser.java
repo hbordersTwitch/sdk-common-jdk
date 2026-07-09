@@ -1,5 +1,6 @@
 package cloud.eppo;
 
+import cloud.eppo.api.Configuration;
 import cloud.eppo.api.dto.BanditParametersResponse;
 import cloud.eppo.api.dto.FlagConfigResponse;
 import cloud.eppo.parser.ConfigurationParseException;
@@ -19,7 +20,11 @@ import org.slf4j.LoggerFactory;
  * format. The deserializers are hand-rolled to avoid reliance on annotations and method names,
  * which can be unreliable when ProGuard minification is in use.
  */
-public class JacksonConfigurationParser implements ConfigurationParser<JsonNode> {
+public class JacksonConfigurationParser implements ConfigurationParser<
+  Configuration,
+  Configuration.Builder,
+  JsonNode
+> {
   private static final Logger log = LoggerFactory.getLogger(JacksonConfigurationParser.class);
 
   private final ObjectMapper objectMapper;
@@ -77,5 +82,15 @@ public class JacksonConfigurationParser implements ConfigurationParser<JsonNode>
     } catch (IOException e) {
       throw new ConfigurationParseException("Failed to parse JSON value", e);
     }
+  }
+
+  @Override
+  public @NotNull Configuration.Builder configurationBuilder(@NotNull FlagConfigResponse flagConfigResponse) {
+    return new Configuration.Builder(flagConfigResponse);
+  }
+
+  @Override
+  public @NotNull Configuration.Builder configurationBuilder(@NotNull FlagConfigResponse flagConfigResponse, boolean isConfigObfuscated) {
+    return new Configuration.Builder(flagConfigResponse, isConfigObfuscated);
   }
 }

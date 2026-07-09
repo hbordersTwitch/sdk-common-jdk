@@ -68,9 +68,9 @@ public class BaseEppoClientTest {
       new ObjectMapper().registerModule(AssignmentTestCase.assignmentTestCaseModule());
 
   // Use JacksonConfigurationParser for all tests
-  private final ConfigurationParser<JsonNode> parser = new JacksonConfigurationParser();
+  private final ConfigurationParser<Configuration, Configuration.Builder, JsonNode> parser = new JacksonConfigurationParser();
 
-  private BaseEppoClient<JsonNode> eppoClient;
+  private BaseEppoClient<Configuration, Configuration.Builder, JsonNode> eppoClient;
   private AssignmentLogger mockAssignmentLogger;
   private EppoConfigurationClient mockConfigClient;
 
@@ -99,7 +99,7 @@ public class BaseEppoClientTest {
             TEST_BASE_URL,
             mockAssignmentLogger,
             null,
-            null,
+            new ConfigurationStore(),
             isGracefulMode,
             isConfigObfuscated,
             true,
@@ -121,7 +121,7 @@ public class BaseEppoClientTest {
             TEST_BASE_URL,
             mockAssignmentLogger,
             null,
-            null,
+            new ConfigurationStore(),
             isGracefulMode,
             isConfigObfuscated,
             true,
@@ -147,7 +147,7 @@ public class BaseEppoClientTest {
             TEST_BASE_URL,
             mockAssignmentLogger,
             null,
-            null,
+            new ConfigurationStore(),
             isGracefulMode,
             isConfigObfuscated,
             true,
@@ -171,7 +171,7 @@ public class BaseEppoClientTest {
             TEST_BASE_URL,
             mockAssignmentLogger,
             null,
-            null,
+            new ConfigurationStore(),
             true,
             false,
             true,
@@ -279,7 +279,7 @@ public class BaseEppoClientTest {
             testBaseUrl,
             mockAssignmentLogger,
             null,
-            null,
+            new ConfigurationStore(),
             false,
             false,
             true,
@@ -306,8 +306,8 @@ public class BaseEppoClientTest {
   public void testErrorGracefulModeOn() throws JsonProcessingException {
     initClient(true, false);
 
-    BaseEppoClient<JsonNode> realClient = eppoClient;
-    BaseEppoClient<JsonNode> spyClient = spy(realClient);
+    BaseEppoClient<Configuration, Configuration.Builder, JsonNode> realClient = eppoClient;
+    BaseEppoClient<Configuration, Configuration.Builder, JsonNode> spyClient = spy(realClient);
     doThrow(new RuntimeException("Exception thrown by mock"))
         .when(spyClient)
         .evaluateAndMaybeLog(
@@ -351,8 +351,8 @@ public class BaseEppoClientTest {
   public void testErrorGracefulModeOff() {
     initClient(false, false);
 
-    BaseEppoClient<JsonNode> realClient = eppoClient;
-    BaseEppoClient<JsonNode> spyClient = spy(realClient);
+    BaseEppoClient<Configuration, Configuration.Builder, JsonNode> realClient = eppoClient;
+    BaseEppoClient<Configuration, Configuration.Builder, JsonNode> spyClient = spy(realClient);
     doThrow(new RuntimeException("Exception thrown by mock"))
         .when(spyClient)
         .evaluateAndMaybeLog(
@@ -772,7 +772,7 @@ public class BaseEppoClientTest {
     mockConfigClient = mockConfigurationClient(BOOL_FLAG_CONFIG);
 
     mockAssignmentLogger = mock(AssignmentLogger.class);
-    BaseEppoClient<JsonNode> client =
+    BaseEppoClient<Configuration, Configuration.Builder, JsonNode> client =
         eppoClient =
             new BaseEppoClient<>(
                 DUMMY_FLAG_API_KEY,
@@ -781,7 +781,7 @@ public class BaseEppoClientTest {
                 TEST_BASE_URL,
                 mockAssignmentLogger,
                 null,
-                null,
+                new ConfigurationStore(),
                 false,
                 false,
                 true,
@@ -901,7 +901,7 @@ public class BaseEppoClientTest {
             TEST_BASE_URL,
             mockAssignmentLogger,
             null,
-            null,
+            new ConfigurationStore(),
             false,
             false,
             true,

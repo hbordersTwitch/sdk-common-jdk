@@ -6,6 +6,7 @@ import cloud.eppo.BaseEppoClient;
 import cloud.eppo.api.AllocationDetails;
 import cloud.eppo.api.AssignmentDetails;
 import cloud.eppo.api.Attributes;
+import cloud.eppo.api.Configuration;
 import cloud.eppo.api.EppoValue;
 import cloud.eppo.api.EvaluationDetails;
 import cloud.eppo.api.MatchedRule;
@@ -89,17 +90,17 @@ public class AssignmentTestCase {
     return testCase;
   }
 
-  public static void runTestCase(AssignmentTestCase testCase, BaseEppoClient<JsonNode> eppoClient) {
+  public static void runTestCase(AssignmentTestCase testCase, BaseEppoClient<Configuration, Configuration.Builder, JsonNode> eppoClient) {
     runTestCaseBase(testCase, eppoClient, false);
   }
 
   public static void runTestCaseWithDetails(
-      AssignmentTestCase testCase, BaseEppoClient<JsonNode> eppoClient) {
+      AssignmentTestCase testCase, BaseEppoClient<Configuration, Configuration.Builder, JsonNode> eppoClient) {
     runTestCaseBase(testCase, eppoClient, true);
   }
 
   private static void runTestCaseBase(
-      AssignmentTestCase testCase, BaseEppoClient<JsonNode> eppoClient, boolean validateDetails) {
+      AssignmentTestCase testCase, BaseEppoClient<Configuration, Configuration.Builder, JsonNode> eppoClient, boolean validateDetails) {
     String flagKey = testCase.getFlag();
     TestCaseValue defaultValue = testCase.getDefaultValue();
     assertFalse(testCase.getSubjects().isEmpty());

@@ -1,5 +1,6 @@
 package cloud.eppo.parser;
 
+import cloud.eppo.api.SerializableEppoConfiguration;
 import cloud.eppo.api.dto.BanditParametersResponse;
 import cloud.eppo.api.dto.FlagConfigResponse;
 import org.jetbrains.annotations.NotNull;
@@ -12,7 +13,14 @@ import org.jetbrains.annotations.NotNull;
  * eppo-sdk-common module), but users can supply custom implementations to accommodate specialized
  * needs.
  */
-public interface ConfigurationParser<JSONFlagType> {
+public interface ConfigurationParser<
+  ConfigurationType extends SerializableEppoConfiguration,
+  ConfigurationBuilderType extends SerializableEppoConfiguration.AbstractBuilder<
+    ConfigurationBuilderType,
+    ConfigurationType
+  >,
+  JSONFlagType
+> {
 
   /**
    * Parses raw flag configuration JSON bytes.
@@ -42,4 +50,14 @@ public interface ConfigurationParser<JSONFlagType> {
    * @throws ConfigurationParseException if unwrapping fails
    */
   @NotNull JSONFlagType parseJsonValue(@NotNull String jsonValue) throws ConfigurationParseException;
+
+  /**
+   * @see SerializableEppoConfiguration.AbstractBuilder
+   */
+  @NotNull ConfigurationBuilderType configurationBuilder(@NotNull FlagConfigResponse flagConfigResponse);
+
+  /**
+   * @see SerializableEppoConfiguration.AbstractBuilder
+   */
+  @NotNull ConfigurationBuilderType configurationBuilder(@NotNull FlagConfigResponse flagConfigResponse, boolean isConfigObfuscated);
 }

@@ -2,6 +2,8 @@ package cloud.eppo.api;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import cloud.eppo.JacksonConfigurationParser;
 import cloud.eppo.api.dto.BanditParametersResponse;
 import cloud.eppo.api.dto.FlagConfig;
@@ -20,7 +22,7 @@ public class ConfigurationSerializationTest {
   private static final File banditModelsFile =
       new File("src/test/resources/shared/ufc/bandit-models-v1.json");
 
-  private static final ConfigurationParser<?> parser = new JacksonConfigurationParser();
+  private static final ConfigurationParser<Configuration, Configuration.Builder, JsonNode> parser = new JacksonConfigurationParser();
 
   @Test
   public void testConfigurationSerializesAndDeserializes() throws Exception {

@@ -156,6 +156,7 @@ public class Configuration implements SerializableEppoConfiguration {
         flagsSnapshotId);
   }
 
+  @Override
   public FlagConfig getFlag(String flagKey) {
     String flagKeyForLookup = flagKey;
     if (isConfigObfuscated()) {
@@ -176,6 +177,7 @@ public class Configuration implements SerializableEppoConfiguration {
    *
    * @return The flag's variation type or null.
    */
+  @Override
   public @Nullable VariationType getFlagType(String flagKey) {
     FlagConfig flag = getFlag(flagKey);
     if (flag == null) {
@@ -184,6 +186,7 @@ public class Configuration implements SerializableEppoConfiguration {
     return flag.getVariationType();
   }
 
+  @Override
   public String banditKeyForVariation(String flagKey, String variationValue) {
     // Note: In practice this double loop should be quite quick as the number of bandits and bandit
     // variations will be small. Should this ever change, we can optimize things.
@@ -199,30 +202,37 @@ public class Configuration implements SerializableEppoConfiguration {
     return null;
   }
 
+  @Override
   public BanditParameters getBanditParameters(String banditKey) {
     return bandits.get(banditKey);
   }
 
+  @Override
   public boolean isConfigObfuscated() {
     return isConfigObfuscated;
   }
 
+  @Override
   public boolean isEmpty() {
     return flags == null || flags.isEmpty();
   }
 
+  @Override
   public Set<String> getFlagKeys() {
     return flags == null ? Collections.emptySet() : flags.keySet();
   }
 
+  @Override
   public String getEnvironmentName() {
     return environmentName;
   }
 
+  @Override
   public Date getConfigFetchedAt() {
     return configFetchedAt;
   }
 
+  @Override
   public Date getConfigPublishedAt() {
     return configPublishedAt;
   }
@@ -236,6 +246,7 @@ public class Configuration implements SerializableEppoConfiguration {
    *
    * @return the snapshot ID, or null if not available
    */
+  @Override
   @Nullable public String getFlagsSnapshotId() {
     return flagsSnapshotId;
   }
@@ -249,77 +260,25 @@ public class Configuration implements SerializableEppoConfiguration {
    *
    * @see Configuration for usage.
    */
-  public static class Builder {
-
-    private final boolean isConfigObfuscated;
-    private final Map<String, FlagConfig> flags;
-    private final Map<String, BanditReference> banditReferences;
-    private Map<String, BanditParameters> bandits = Collections.emptyMap();
-    private final String environmentName;
-    private final Date configPublishedAt;
-    @Nullable private String flagsSnapshotId;
-
+  public static class Builder extends SerializableEppoConfiguration.AbstractBuilder<
+          Builder,
+          Configuration
+  > {
     public Builder(FlagConfigResponse flagConfigResponse) {
-      this(flagConfigResponse, flagConfigResponse.getFormat() == FlagConfigResponse.Format.CLIENT);
+      super(Builder.class, flagConfigResponse);
     }
 
     public Builder(@Nullable FlagConfigResponse flagConfigResponse, boolean isConfigObfuscated) {
-      this.isConfigObfuscated = isConfigObfuscated;
-      if (flagConfigResponse == null || flagConfigResponse.getFlags() == null) {
-        log.warn("'flags' map missing in flag definition JSON");
-        flags = Collections.emptyMap();
-        banditReferences = Collections.emptyMap();
-        environmentName = null;
-        configPublishedAt = null;
-      } else {
-        flags = Collections.unmodifiableMap(flagConfigResponse.getFlags());
-        banditReferences = Collections.unmodifiableMap(flagConfigResponse.getBanditReferences());
-
-        // Extract environment name and published at timestamp from the response
-        environmentName = flagConfigResponse.getEnvironmentName();
-        configPublishedAt = flagConfigResponse.getCreatedAt();
-
-        log.debug("Loaded {} flag definitions from flag definition JSON", flags.size());
-      }
+      super(Builder.class, flagConfigResponse, isConfigObfuscated);
     }
 
-    public boolean requiresUpdatedBanditModels() {
-      Set<String> neededModelVersions = referencedBanditModelVersion();
-      return !loadedBanditModelVersions().containsAll(neededModelVersions);
-    }
-
-    public Set<String> loadedBanditModelVersions() {
-      return bandits.values().stream()
-          .map(BanditParameters::getModelVersion)
-          .collect(Collectors.toSet());
-    }
-
-    public Set<String> referencedBanditModelVersion() {
-      return banditReferences.values().stream()
-          .map(BanditReference::getModelVersion)
-          .collect(Collectors.toSet());
-    }
-
+    @Override
     public Builder banditParametersFromConfig(Configuration currentConfig) {
       if (currentConfig == null || currentConfig.bandits == null) {
         bandits = Collections.emptyMap();
       } else {
         bandits = currentConfig.bandits;
       }
-      return this;
-    }
-
-    public Builder banditParameters(BanditParametersResponse banditParametersResponse) {
-      if (banditParametersResponse == null || banditParametersResponse.getBandits() == null) {
-        bandits = Collections.emptyMap();
-        return this;
-      }
-      bandits = Collections.unmodifiableMap(banditParametersResponse.getBandits());
-      return this;
-    }
-
-    public Builder flagsSnapshotId(@Nullable String flagsSnapshotId) {
-      this.flagsSnapshotId = flagsSnapshotId;
       return this;
     }
 

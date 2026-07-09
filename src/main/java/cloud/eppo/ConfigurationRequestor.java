@@ -1,6 +1,6 @@
 package cloud.eppo;
 
-import cloud.eppo.api.Configuration;
+import cloud.eppo.api.SerializableEppoConfiguration;
 import cloud.eppo.api.dto.BanditParametersResponse;
 import cloud.eppo.api.dto.FlagConfigResponse;
 import cloud.eppo.callback.CallbackManager;
@@ -17,13 +17,20 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ConfigurationRequestor {
+public class ConfigurationRequestor<
+   ConfigurationType extends SerializableEppoConfiguration,
+   ConfigurationBuilderType extends SerializableEppoConfiguration.AbstractBuilder<
+     ConfigurationBuilderType,
+     ConfigurationType
+   >,
+   JsonFlagType
+> {
   private static final Logger log = LoggerFactory.getLogger(ConfigurationRequestor.class);
 
-  private final IConfigurationStore configurationStore;
+  private final IConfigurationStore<ConfigurationType> configurationStore;
   private final boolean supportBandits;
 
-  @NotNull private final ConfigurationParser configurationParser;
+  @NotNull private final ConfigurationParser<ConfigurationType, ConfigurationBuilderType, JsonFlagType> configurationParser;
   @NotNull private final EppoConfigurationClient configurationClient;
   @NotNull private final EppoConfigurationRequestFactory requestFactory;
 
@@ -31,12 +38,12 @@ public class ConfigurationRequestor {
   private CompletableFuture<Boolean> configurationFuture = null;
   private boolean initialConfigSet = false;
 
-  private final CallbackManager<Configuration> configChangeManager = new CallbackManager<>();
+  private final CallbackManager<ConfigurationType> configChangeManager = new CallbackManager<>();
 
   public ConfigurationRequestor(
-      @NotNull IConfigurationStore configurationStore,
+      @NotNull IConfigurationStore<ConfigurationType> configurationStore,
       boolean supportBandits,
-      @NotNull ConfigurationParser configurationParser,
+      @NotNull ConfigurationParser<ConfigurationType, ConfigurationBuilderType, JsonFlagType> configurationParser,
       @NotNull EppoConfigurationClient configurationClient,
       @NotNull EppoConfigurationRequestFactory requestFactory) {
     this.configurationStore = configurationStore;
@@ -47,7 +54,7 @@ public class ConfigurationRequestor {
   }
 
   // Synchronously set the initial configuration.
-  public void setInitialConfiguration(@NotNull Configuration configuration) {
+  public void setInitialConfiguration(@NotNull ConfigurationType configuration) {
     if (initialConfigSet || this.configurationFuture != null) {
       throw new IllegalStateException("Initial configuration has already been set");
     }
@@ -60,7 +67,7 @@ public class ConfigurationRequestor {
    * was used, false if not (due to being empty, a fetched config taking precedence, etc.)
    */
   public CompletableFuture<Boolean> setInitialConfiguration(
-      @NotNull CompletableFuture<Configuration> configurationFuture) {
+      @NotNull CompletableFuture<ConfigurationType> configurationFuture) {
     if (initialConfigSet || this.configurationFuture != null) {
       throw new IllegalStateException("Configuration future has already been set");
     }
@@ -98,7 +105,7 @@ public class ConfigurationRequestor {
     log.debug("Fetching configuration");
 
     // Reuse the `lastConfig` as its bandits may be useful
-    Configuration lastConfig = configurationStore.getConfiguration();
+    ConfigurationType lastConfig = configurationStore.getConfiguration();
 
     EppoConfigurationRequest flagRequest =
         requestFactory.createFlagConfigRequest(lastConfig.getFlagsSnapshotId());
@@ -126,12 +133,12 @@ public class ConfigurationRequestor {
 
     byte[] flagConfigurationJsonBytes = flagResponse.getBody();
 
-    Configuration.Builder configBuilder;
+    SerializableEppoConfiguration.AbstractBuilder<ConfigurationBuilderType, ConfigurationType> configBuilder;
     try {
       FlagConfigResponse flagConfigResponse =
           configurationParser.parseFlagConfig(flagConfigurationJsonBytes);
       configBuilder =
-          new Configuration.Builder(flagConfigResponse).banditParametersFromConfig(lastConfig);
+          configurationParser.configurationBuilder(flagConfigResponse).banditParametersFromConfig(lastConfig);
     } catch (ConfigurationParseException e) {
       log.error("Failed to parse flag configuration", e);
       throw new RuntimeException(e);
@@ -180,7 +187,7 @@ public class ConfigurationRequestor {
   /** Loads configuration asynchronously from the API server, off-thread. */
   CompletableFuture<Void> fetchAndSaveFromRemoteAsync() {
     log.debug("Fetching configuration from API server");
-    final Configuration lastConfig = configurationStore.getConfiguration();
+    final ConfigurationType lastConfig = configurationStore.getConfiguration();
 
     if (remoteFetchFuture != null && !remoteFetchFuture.isDone()) {
       log.debug("Remote fetch is active. Cancelling and restarting");
@@ -217,14 +224,14 @@ public class ConfigurationRequestor {
 
   // Common handling for building config and conditionally loading bandit parameters, async.
   private CompletableFuture<Void> buildAndSaveConfiguration(
-      EppoConfigurationResponse flagResponse, Configuration lastConfig) {
-    Configuration.Builder configBuilder;
+      EppoConfigurationResponse flagResponse, ConfigurationType lastConfig) {
+    SerializableEppoConfiguration.AbstractBuilder<ConfigurationBuilderType, ConfigurationType> configBuilder;
 
     try {
       FlagConfigResponse flagConfigResponse =
           configurationParser.parseFlagConfig(flagResponse.getBody());
       configBuilder =
-          new Configuration.Builder(flagConfigResponse).banditParametersFromConfig(lastConfig);
+          configurationParser.configurationBuilder(flagConfigResponse).banditParametersFromConfig(lastConfig);
     } catch (ConfigurationParseException e) {
       log.error("Failed to parse flag configuration", e);
       throw new RuntimeException(e);
@@ -268,7 +275,7 @@ public class ConfigurationRequestor {
     }
   }
 
-  private CompletableFuture<Void> saveConfigurationAndNotify(Configuration configuration) {
+  private CompletableFuture<Void> saveConfigurationAndNotify(ConfigurationType configuration) {
     CompletableFuture<Void> saveFuture = configurationStore.saveConfiguration(configuration);
     return saveFuture.thenRun(
         () -> {
@@ -278,7 +285,7 @@ public class ConfigurationRequestor {
         });
   }
 
-  public Runnable onConfigurationChange(Consumer<Configuration> callback) {
+  public Runnable onConfigurationChange(Consumer<ConfigurationType> callback) {
     return configChangeManager.subscribe(callback);
   }
 
@@ -288,7 +295,7 @@ public class ConfigurationRequestor {
    * @param callback The callback to unsubscribe
    * @return true if the callback was found and removed, false otherwise
    */
-  public boolean unsubscribeFromConfigurationChange(Consumer<Configuration> callback) {
+  public boolean unsubscribeFromConfigurationChange(Consumer<ConfigurationType> callback) {
     return configChangeManager.unsubscribe(callback);
   }
 }
